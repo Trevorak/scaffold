@@ -1,0 +1,3 @@
+.idea
+_testdata/destination/
+!_testdata/destination/.gitkeep

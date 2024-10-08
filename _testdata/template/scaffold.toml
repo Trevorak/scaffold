@@ -1,0 +1,24 @@
+[[token]]
+name = "camelToken"
+modifiers = ["camel"]
+
+[[token]]
+name = "PascalToken"
+value = "camelToken"
+modifiers = ["pascal"]
+
+[[token]]
+name = "slug-token"
+modifiers = ["slug"]
+
+[[token]]
+name = "foo"
+modifiers = ["camel"]
+localize = ["local"]
+
+[[token]]
+name = "Foo"
+modifiers = ["pascal"]
+localize = ["local"]
+
+
