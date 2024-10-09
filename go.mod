@@ -1,4 +1,4 @@
-module scaffold
+module github.com/clanko/scaffold
 
 go 1.23.0
 
