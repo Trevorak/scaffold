@@ -153,3 +153,37 @@ func ModifierCamel(subject string) string {
 
 	return string(modified)
 }
+
+func ModifierTitle(subject string) string {
+	var modified []uint8
+	for i := range subject {
+		// if it's a number, add it to modified
+		if subject[i] >= 48 && subject[i] <= 57 {
+			modified = append(modified, subject[i])
+		} else if subject[i] >= 97 && subject[i] <= 122 {
+			// if first char, make capital.
+			if i == 0 {
+				upper := subject[i] - 32
+
+				modified = append(modified, upper)
+			} else {
+				// if preceding char was not a char, make capital, if it was not a space, add one
+
+				modified = append(modified, subject[i])
+			}
+		} else
+		// if char is capital
+		if subject[i] >= 65 && subject[i] <= 90 {
+
+			// if not the first char and preceding char was not a space, add space
+			modifiedLength := len(modified)
+			if i != 0 && modified[modifiedLength-1] != 32 {
+				modified = append(modified, 32)
+			}
+
+			modified = append(modified, subject[i])
+		}
+	}
+
+	return string(modified)
+}

@@ -38,6 +38,7 @@ func (scaf *Scaffold) registerDefaultModifiers() {
 	scaf.RegisterModifier("lower", ModifierLower)
 	scaf.RegisterModifier("upper", ModifierUpper)
 	scaf.RegisterModifier("slug", ModifierSlug)
+	scaf.RegisterModifier("title", ModifierTitle)
 	scaf.RegisterModifier("snake", ModifierSnake)
 	scaf.RegisterModifier("camel", ModifierCamel)
 	scaf.RegisterModifier("pascal", ModifierPascal)

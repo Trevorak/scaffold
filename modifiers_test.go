@@ -91,3 +91,22 @@ func TestModifierCamel(t *testing.T) {
 		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
 	}
 }
+
+func TestModifierTitle(t *testing.T) {
+	expected := "A Title Test"
+	input := "ATitleTest"
+
+	actual := ModifierTitle(input)
+
+	if actual != expected {
+		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
+	}
+
+	input = "A_Title-Test"
+
+	actual = ModifierTitle(input)
+
+	if actual != expected {
+		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
+	}
+}
