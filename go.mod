@@ -1,4 +1,4 @@
-module github.com/trevorak/scaffold
+module github.com/trevorak/scaffold/v2
 
 go 1.23.0
 
