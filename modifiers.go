@@ -1,6 +1,9 @@
 package scaffold
 
-import "strings"
+import (
+	"github.com/gertd/go-pluralize"
+	"strings"
+)
 
 func ModifierLower(subject string) string {
 	return strings.ToLower(subject)
@@ -186,4 +189,10 @@ func ModifierTitle(subject string) string {
 	}
 
 	return string(modified)
+}
+
+func ModifierPlural(subject string) string {
+	client := pluralize.NewClient()
+
+	return client.Plural(subject)
 }

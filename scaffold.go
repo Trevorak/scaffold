@@ -42,6 +42,7 @@ func (scaf *Scaffold) registerDefaultModifiers() {
 	scaf.RegisterModifier("snake", ModifierSnake)
 	scaf.RegisterModifier("camel", ModifierCamel)
 	scaf.RegisterModifier("pascal", ModifierPascal)
+	scaf.RegisterModifier("plural", ModifierPlural)
 }
 
 func (scaf *Scaffold) GetTokens() []Token {

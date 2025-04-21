@@ -110,3 +110,23 @@ func TestModifierTitle(t *testing.T) {
 		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
 	}
 }
+
+func TestModifierPlural(t *testing.T) {
+	expected := "Countries"
+	input := "Country"
+
+	actual := ModifierPlural(input)
+
+	if actual != expected {
+		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
+	}
+
+	expected = "States"
+	input = "State"
+
+	actual = ModifierPlural(input)
+
+	if actual != expected {
+		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
+	}
+}
