@@ -6,12 +6,12 @@ import (
 )
 
 type Token struct {
-	Name       string `toml:"name"`
-	Value      string
-	ValueToken string   `toml:"value"`
-	Modifiers  []string `toml:"modifiers"`
-	Localize   []string `toml:"localize"`
-	Priority   int      `toml:"priority"`
+	Name      string   `toml:"name"`
+	Value     string   `toml:"value"`
+	Modifiers []string `toml:"modifiers"`
+	Localize  []string `toml:"localize"`
+	Priority  int      `toml:"priority"`
+	Token     string   `toml:"token"`
 }
 
 type Config struct {

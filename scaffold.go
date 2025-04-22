@@ -57,13 +57,12 @@ func (scaf *Scaffold) OnMake(onMakeFunc func(string)) {
 }
 
 func (scaf *Scaffold) Make(destination string) error {
-	var localTokens []Token
-	var globalTokens []Token
+
 	for i, token := range scaf.Config.Tokens {
-		if token.ValueToken == "" {
-			token.Value = scaf.TokenValueMap[token.Name]
-		} else {
-			token.Value = scaf.TokenValueMap[token.ValueToken]
+		token.Value = scaf.TokenValueMap[token.Value]
+
+		if token.Value == "" {
+			continue
 		}
 
 		for _, modifier := range token.Modifiers {
@@ -72,17 +71,29 @@ func (scaf *Scaffold) Make(destination string) error {
 			}
 		}
 
-		if token.Value == "" {
-			return errors.New("token " + token.Name + " has no value set")
+		scaf.Config.Tokens[i].Value = token.Value
+	}
+
+	slices.SortFunc(scaf.Config.Tokens, func(a, b Token) int {
+		return cmp.Compare(b.Priority, a.Priority)
+	})
+
+	for i, token := range scaf.Config.Tokens {
+		if token.Token != "" {
+			scaf.Config.Tokens[i].Value = scaf.getTokenValue(token)
+		}
+
+		if scaf.Config.Tokens[i].Value == "" {
+			continue
+		}
+
+		for _, modifier := range token.Modifiers {
+			for j := range scaf.Modifiers[modifier] {
+				scaf.Config.Tokens[i].Value = scaf.Modifiers[modifier][j](scaf.Config.Tokens[i].Value)
+			}
 		}
 
 		scaf.Config.Tokens[i].Value = token.Value
-
-		if token.Localize != nil {
-			localTokens = append(localTokens, token)
-		} else {
-			globalTokens = append(globalTokens, token)
-		}
 	}
 
 	_ = filepath.WalkDir(scaf.Path, func(path string, info os.DirEntry, err error) error {
@@ -96,9 +107,7 @@ func (scaf *Scaffold) Make(destination string) error {
 
 		relativePath := strings.TrimPrefix(path, scaf.Path)
 
-		tokens := append(globalTokens, localTokens...)
-
-		relativePath = scaf.replaceTokens(relativePath, path, tokens)
+		relativePath = scaf.replaceTokens(relativePath, path)
 
 		makeDestination := destination + relativePath
 
@@ -111,7 +120,7 @@ func (scaf *Scaffold) Make(destination string) error {
 			}
 
 			stringcontents := string(contents)
-			stringcontents = scaf.replaceTokens(stringcontents, path, tokens)
+			stringcontents = scaf.replaceTokens(stringcontents, path)
 
 			err = os.WriteFile(makeDestination, []byte(stringcontents), 0644)
 			if err != nil {
@@ -127,12 +136,8 @@ func (scaf *Scaffold) Make(destination string) error {
 	return nil
 }
 
-func (scaf *Scaffold) replaceTokens(subject string, path string, tokens []Token) string {
-	slices.SortFunc(tokens, func(a, b Token) int {
-		return cmp.Compare(b.Priority, a.Priority)
-	})
-
-	for _, token := range tokens {
+func (scaf *Scaffold) replaceTokens(subject string, path string) string {
+	for _, token := range scaf.Config.Tokens {
 		if token.Localize != nil {
 			for _, tokenPath := range token.Localize {
 				if strings.HasPrefix(path, scaf.Path+"/"+tokenPath) {
@@ -145,6 +150,29 @@ func (scaf *Scaffold) replaceTokens(subject string, path string, tokens []Token)
 	}
 
 	return subject
+}
+
+func (scaf *Scaffold) getTokenValue(token Token) string {
+	if token.Token != "" {
+		parentToken, err := scaf.GetTokenByName(token.Token)
+		if err != nil {
+			return token.Value
+		}
+
+		return scaf.getTokenValue(parentToken)
+	}
+
+	return token.Value
+}
+
+func (scaf *Scaffold) GetTokenByName(name string) (Token, error) {
+	for _, token := range scaf.Config.Tokens {
+		if token.Name == name {
+			return token, nil
+		}
+	}
+
+	return Token{}, errors.New("token not found")
 }
 
 func Init(templatesPath string) (*Scaffold, error) {

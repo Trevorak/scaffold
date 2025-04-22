@@ -28,7 +28,7 @@ modifiers = ["camel"]
 
 [[token]]
 name = "PascalToken"
-value = "camelToken" # Use the same supplied value as the token camelToken. Order is important here. This must be defined after camelToken.
+token = "camelToken" # Use the same supplied value as the token camelToken. Order is important here. This must be defined after camelToken.
 modifiers = ["pascal"]
 
 [[token]]

@@ -4,12 +4,12 @@ modifiers = ["camel"]
 
 [[token]]
 name = "priorityToken"
-value = "camelToken"
+token = "camelToken"
 priority = 9
 
 [[token]]
 name = "PascalToken"
-value = "camelToken"
+token = "camelToken"
 modifiers = ["pascal"]
 
 [[token]]
