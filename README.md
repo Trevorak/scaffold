@@ -47,7 +47,7 @@ localize = ["subfolder"] # This would apply only to items within subfolder. Rena
     package main
 
     import (
-        "github.com/trevorak/scaffold"
+        "github.com/trevorak/scaffold/v2"
         "log"
     )
 
