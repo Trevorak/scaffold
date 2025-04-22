@@ -1,8 +1,11 @@
 package scaffold
 
 import (
+	"cmp"
+	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -69,6 +72,10 @@ func (scaf *Scaffold) Make(destination string) error {
 			}
 		}
 
+		if token.Value == "" {
+			return errors.New("token " + token.Name + " has no value set")
+		}
+
 		scaf.Config.Tokens[i].Value = token.Value
 
 		if token.Localize != nil {
@@ -89,8 +96,9 @@ func (scaf *Scaffold) Make(destination string) error {
 
 		relativePath := strings.TrimPrefix(path, scaf.Path)
 
-		relativePath = scaf.replaceTokens(relativePath, path, globalTokens)
-		relativePath = scaf.replaceTokens(relativePath, path, localTokens)
+		tokens := append(globalTokens, localTokens...)
+
+		relativePath = scaf.replaceTokens(relativePath, path, tokens)
 
 		makeDestination := destination + relativePath
 
@@ -103,8 +111,7 @@ func (scaf *Scaffold) Make(destination string) error {
 			}
 
 			stringcontents := string(contents)
-			stringcontents = scaf.replaceTokens(stringcontents, path, globalTokens)
-			stringcontents = scaf.replaceTokens(stringcontents, path, localTokens)
+			stringcontents = scaf.replaceTokens(stringcontents, path, tokens)
 
 			err = os.WriteFile(makeDestination, []byte(stringcontents), 0644)
 			if err != nil {
@@ -121,6 +128,10 @@ func (scaf *Scaffold) Make(destination string) error {
 }
 
 func (scaf *Scaffold) replaceTokens(subject string, path string, tokens []Token) string {
+	slices.SortFunc(tokens, func(a, b Token) int {
+		return cmp.Compare(b.Priority, a.Priority)
+	})
+
 	for _, token := range tokens {
 		if token.Localize != nil {
 			for _, tokenPath := range token.Localize {

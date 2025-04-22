@@ -11,6 +11,7 @@ type Token struct {
 	ValueToken string   `toml:"value"`
 	Modifiers  []string `toml:"modifiers"`
 	Localize   []string `toml:"localize"`
+	Priority   int      `toml:"priority"`
 }
 
 type Config struct {
