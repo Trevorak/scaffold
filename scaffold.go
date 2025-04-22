@@ -64,8 +64,8 @@ func (scaf *Scaffold) Make(destination string) error {
 		}
 
 		for _, modifier := range token.Modifiers {
-			for i := range scaf.Modifiers[modifier] {
-				token.Value = scaf.Modifiers[modifier][i](token.Value)
+			for j := range scaf.Modifiers[modifier] {
+				token.Value = scaf.Modifiers[modifier][j](token.Value)
 			}
 		}
 
