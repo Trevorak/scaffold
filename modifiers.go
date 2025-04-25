@@ -204,3 +204,9 @@ func ModifierPlural(subject string) string {
 
 	return client.Plural(subject)
 }
+
+func ModifierSingular(subject string) string {
+	client := pluralize.NewClient()
+
+	return client.Singular(subject)
+}
