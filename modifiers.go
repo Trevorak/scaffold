@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+type modifierMap map[string][]func(string) string
+
+func (modMap *modifierMap) Add(token string, modifier func(string) string) *modifierMap {
+	(*modMap)[token] = append((*modMap)[token], modifier)
+
+	return modMap
+}
+
 func ModifierLower(subject string) string {
 	return strings.ToLower(subject)
 }

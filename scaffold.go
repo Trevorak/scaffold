@@ -13,20 +13,32 @@ const (
 	configFileName = "scaffold.toml"
 )
 
-type modifierMap map[string][]func(string) string
-
-func (modMap *modifierMap) Add(token string, modifier func(string) string) *modifierMap {
-	(*modMap)[token] = append((*modMap)[token], modifier)
-
-	return modMap
-}
-
 type Scaffold struct {
 	Path          string
 	Config        Config
 	Modifiers     modifierMap
 	TokenValueMap map[string]string
 	onMakeFunc    func(string)
+}
+
+func Init(templatesPath string) (*Scaffold, error) {
+	config, err := getConfig(templatesPath + "/" + configFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	scaffold := &Scaffold{
+		Path:          templatesPath,
+		Config:        config,
+		Modifiers:     make(modifierMap),
+		TokenValueMap: make(map[string]string),
+	}
+
+	scaffold.onMakeFunc = func(_ string) {}
+
+	scaffold.registerDefaultModifiers()
+
+	return scaffold, nil
 }
 
 func (scaf *Scaffold) RegisterModifier(tokenName string, modifier func(string) string) {
@@ -57,46 +69,58 @@ func (scaf *Scaffold) OnMake(onMakeFunc func(string)) {
 }
 
 func (scaf *Scaffold) Make(destination string) error {
+	// First pass: Set all token values
+	for i := range scaf.Config.Tokens {
+		token := &scaf.Config.Tokens[i]
 
-	for i, token := range scaf.Config.Tokens {
-		token.Value = scaf.TokenValueMap[token.Value]
-
-		if token.Value == "" {
-			continue
-		}
-
-		for _, modifier := range token.Modifiers {
-			for j := range scaf.Modifiers[modifier] {
-				token.Value = scaf.Modifiers[modifier][j](token.Value)
+		// If token depends on another token, get its value
+		if token.Token != "" {
+			parentToken, err := scaf.GetTokenByName(token.Token)
+			if err == nil {
+				token.Value = parentToken.Value
 			}
 		}
 
-		scaf.Config.Tokens[i].Value = token.Value
+		// If no value is set yet, try to get it from TokenValueMap (user-supplied values)
+		if token.Value == "" {
+			token.Value = scaf.TokenValueMap[token.Name]
+		}
+
+		// Apply modifiers
+		for _, modifier := range token.Modifiers {
+			for _, modFunc := range scaf.Modifiers[modifier] {
+				token.Value = modFunc(token.Value)
+			}
+		}
 	}
 
+	// Second pass: Process any remaining token dependencies
+	for i := range scaf.Config.Tokens {
+		token := &scaf.Config.Tokens[i]
+		if token.Token != "" && token.Value == "" {
+			parentToken, err := scaf.GetTokenByName(token.Token)
+			if err == nil && parentToken.Value != "" {
+				token.Value = parentToken.Value
+				// Apply modifiers again for newly set values
+				for _, modifier := range token.Modifiers {
+					for _, modFunc := range scaf.Modifiers[modifier] {
+						token.Value = modFunc(token.Value)
+					}
+				}
+			}
+		}
+	}
+
+	// Sort tokens by priority for replacement order
 	slices.SortFunc(scaf.Config.Tokens, func(a, b Token) int {
 		return cmp.Compare(b.Priority, a.Priority)
 	})
 
-	for i, token := range scaf.Config.Tokens {
-		if token.Token != "" {
-			scaf.Config.Tokens[i].Value = scaf.getTokenValue(token)
+	if err := filepath.WalkDir(scaf.Path, func(path string, info os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
 
-		if scaf.Config.Tokens[i].Value == "" {
-			continue
-		}
-
-		for _, modifier := range token.Modifiers {
-			for j := range scaf.Modifiers[modifier] {
-				scaf.Config.Tokens[i].Value = scaf.Modifiers[modifier][j](scaf.Config.Tokens[i].Value)
-			}
-		}
-
-		scaf.Config.Tokens[i].Value = token.Value
-	}
-
-	_ = filepath.WalkDir(scaf.Path, func(path string, info os.DirEntry, err error) error {
 		if info.Name() == configFileName {
 			return nil
 		}
@@ -112,26 +136,27 @@ func (scaf *Scaffold) Make(destination string) error {
 		makeDestination := destination + relativePath
 
 		if info.IsDir() {
-			err = os.MkdirAll(makeDestination, os.ModePerm)
-		} else {
-			contents, err := os.ReadFile(path)
-			if err != nil {
-				panic(err)
-			}
+			return os.MkdirAll(makeDestination, os.ModePerm)
+		}
 
-			stringcontents := string(contents)
-			stringcontents = scaf.replaceTokens(stringcontents, path)
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
 
-			err = os.WriteFile(makeDestination, []byte(stringcontents), 0644)
-			if err != nil {
-				panic(err)
-			}
+		stringcontents := string(contents)
+		stringcontents = scaf.replaceTokens(stringcontents, path)
+
+		if err := os.WriteFile(makeDestination, []byte(stringcontents), 0644); err != nil {
+			return err
 		}
 
 		scaf.onMakeFunc(makeDestination)
 
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -152,19 +177,6 @@ func (scaf *Scaffold) replaceTokens(subject string, path string) string {
 	return subject
 }
 
-func (scaf *Scaffold) getTokenValue(token Token) string {
-	if token.Token != "" {
-		parentToken, err := scaf.GetTokenByName(token.Token)
-		if err != nil {
-			return token.Value
-		}
-
-		return scaf.getTokenValue(parentToken)
-	}
-
-	return token.Value
-}
-
 func (scaf *Scaffold) GetTokenByName(name string) (Token, error) {
 	for _, token := range scaf.Config.Tokens {
 		if token.Name == name {
@@ -173,24 +185,4 @@ func (scaf *Scaffold) GetTokenByName(name string) (Token, error) {
 	}
 
 	return Token{}, errors.New("token not found")
-}
-
-func Init(templatesPath string) (*Scaffold, error) {
-	config, err := getConfig(templatesPath + "/" + configFileName)
-	if err != nil {
-		return nil, err
-	}
-
-	scaffold := &Scaffold{
-		Path:          templatesPath,
-		Config:        config,
-		Modifiers:     make(modifierMap),
-		TokenValueMap: make(map[string]string),
-	}
-
-	scaffold.onMakeFunc = func(_ string) {}
-
-	scaffold.registerDefaultModifiers()
-
-	return scaffold, nil
 }

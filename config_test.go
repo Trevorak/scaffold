@@ -12,7 +12,7 @@ func TestGetConfig(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	config, err := getConfig(wd + "/_testdata/template/scaffold.toml")
+	config, err := getConfig(wd + "/_testdata/scaffold.toml")
 	if err != nil {
 		log.Fatal(err)
 	}
