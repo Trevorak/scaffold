@@ -16,6 +16,15 @@ A powerful Go library for templating and scaffolding projects with customizable 
 go get github.com/trevorak/scaffold/v2
 ```
 
+### VS Code Extension
+
+For a better experience when creating templates, you can use the [Scaffold Token Highlighter](https://github.com/trevorak/scaffold-token-highlighter-vs) VS Code extension. This extension provides:
+
+- Syntax highlighting for scaffold tokens in your template files
+- Easier template creation and maintenance
+
+To install the extension, search for "Scaffold Token Highlighter" in the VS Code marketplace or visit the [extension repository](https://github.com/trevorak/scaffold-token-highlighter-vs).
+
 ## Usage
 
 ### Template Structure
