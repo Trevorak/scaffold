@@ -1,34 +1,54 @@
 # Scaffold
 
+A powerful Go library for templating and scaffolding projects with customizable token replacement and path-specific transformations.
+
+## Features
+
+- Replace tokens in file names and content
+- Apply multiple modifiers to token values (lower, upper, slug, snake, pascal, camel)
+- Path-specific token application
+- Token value binding
+- Simple and intuitive configuration via TOML
+
+## Installation
+
+```bash
+go get github.com/trevorak/scaffold/v2
+```
+
 ## Usage
 
-### Layout
-- Create a folder, which contains all files/directories that will be used as a template.
-- File content and names will be modified according to the token definitions contained in scaffold.toml, which should exist in the root of the template folder.
-- Example
+### Template Structure
+
+Create a template directory containing all files and directories that will serve as your template. The structure should look like this:
+
 ```
-~/example-template/foo.txt
-~/example-template/subfolder/foo.txt
-~/example-template/scaffold.toml
+example-template/
+├── foo.txt
+├── subfolder/
+│   └── foo.txt
+└── scaffold.toml
 ```
 
 ### Configuration
-- scaffold.toml defines token names and modifiers, can bind a token to the value of another token, and can restrict application to specific paths.
-```
+
+The `scaffold.toml` file defines tokens, their modifiers, and path-specific rules. Here's an example:
+
+```toml
 [[token]]
 # The token to replace in files and directories
 name = "camelToken"
 
-# Modifies the value. One of lower, upper, slug, snake, pascal, camel
+# Available modifiers: lower, upper, slug, snake, pascal, camel
 modifiers = ["camel"]
 
-# specifies the path for a token. This token will only be applied to items within the specified file/directory
+# Optional: Restrict token application to specific paths
 #localize = ["path/to/dir", "path/to/another", "path/to/a/file.go"]
-
 
 [[token]]
 name = "PascalToken"
-token = "camelToken" # Use the same supplied value as the token camelToken. Order is important here. This must be defined after camelToken.
+# Bind to another token's value
+token = "camelToken"
 modifiers = ["pascal"]
 
 [[token]]
@@ -38,32 +58,47 @@ modifiers = ["slug"]
 [[token]]
 name = "foo"
 modifiers = ["camel"]
-localize = ["subfolder"] # This would apply only to items within subfolder. Renaming foo.txt to the value set for the token.
+# Apply only to items within subfolder
+localize = ["subfolder"]
 ```
 
-### Execution
+### Available Modifiers
+
+- `lower`: Convert to lowercase
+- `upper`: Convert to uppercase
+- `slug`: Convert to URL-friendly slug
+- `snake`: Convert to snake_case
+- `pascal`: Convert to PascalCase
+- `camel`: Convert to camelCase
+- `singular`: Convert to singular form
+- `plural`: Convert to plural form
+
+### Code Example
 
 ```go
-    package main
+package main
 
-    import (
-        "github.com/trevorak/scaffold/v2"
-        "log"
-    )
+import (
+    "github.com/trevorak/scaffold/v2"
+    "log"
+)
 
-    func main() {
-		scaf, err := scaffold.Init("example-template")
-		if err != nil {
-			log.Fatal("Failed to initialize")
-		}
-
-		scaf.RegisterTokenValue("camelToken", "scaffoldTesting")
-		scaf.RegisterTokenValue("foo", "bar")
-		scaf.RegisterTokenValue("slug-token", "SomeCrazy String!")
-
-		err = scaf.Make("destination/path")
-		if err != nil {
-			log.Fatal(err)
-		}
+func main() {
+    // Initialize scaffold with template directory
+    scaf, err := scaffold.Init("example-template")
+    if err != nil {
+        log.Fatal("Failed to initialize:", err)
     }
+
+    // Register token values
+    scaf.RegisterTokenValue("camelToken", "scaffoldTesting")
+    scaf.RegisterTokenValue("foo", "bar")
+    scaf.RegisterTokenValue("slug-token", "SomeCrazy String!")
+
+    // Generate scaffolded content
+    err = scaf.Make("destination/path")
+    if err != nil {
+        log.Fatal("Failed to generate scaffold:", err)
+    }
+}
 ```
