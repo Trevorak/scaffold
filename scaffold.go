@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -117,6 +118,14 @@ func (scaf *Scaffold) Make(destination string) error {
 		return cmp.Compare(b.Priority, a.Priority)
 	})
 
+	// if scaf.Path does not exist, create it
+	if _, err := os.Stat(scaf.Path); os.IsNotExist(err) {
+		err := os.MkdirAll(scaf.Path, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := filepath.WalkDir(scaf.Path, func(path string, info os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -167,11 +176,13 @@ func (scaf *Scaffold) replaceTokens(subject string, path string) string {
 		if token.Localize != nil {
 			for _, tokenPath := range token.Localize {
 				if strings.HasPrefix(path, scaf.Path+"/"+tokenPath) {
-					subject = strings.ReplaceAll(subject, token.Name, token.Value)
+					re := regexp.MustCompile(token.Name)
+					subject = re.ReplaceAllString(subject, token.Value)
 				}
 			}
 		} else {
-			subject = strings.ReplaceAll(subject, token.Name, token.Value)
+			re := regexp.MustCompile(token.Name)
+			subject = re.ReplaceAllString(subject, token.Value)
 		}
 	}
 

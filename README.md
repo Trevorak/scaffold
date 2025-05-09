@@ -54,6 +54,9 @@ modifiers = ["camel"]
 # Optional: Restrict token application to specific paths
 #localize = ["path/to/dir", "path/to/another", "path/to/a/file.go"]
 
+# Token names can also use regular expressions for more flexible matching
+# For example: "user[0-9]+" will match "user1", "user42", etc.
+
 [[token]]
 name = "PascalToken"
 # Bind to another token's value

@@ -150,3 +150,75 @@ func TestModifierSingular(t *testing.T) {
 		t.Errorf("Unexpected result from modifier. Expected: %v, Got %v", expected, actual)
 	}
 }
+
+func BenchmarkModifierLower(b *testing.B) {
+	input := "Lower StringTest"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierLower(input)
+	}
+}
+
+func BenchmarkModifierUpper(b *testing.B) {
+	input := "upper string"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierUpper(input)
+	}
+}
+
+func BenchmarkModifierSlug(b *testing.B) {
+	input := "SomeCrazy String!"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierSlug(input)
+	}
+}
+
+func BenchmarkModifierSnake(b *testing.B) {
+	input := "SnakeCase"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierSnake(input)
+	}
+}
+
+func BenchmarkModifierPascal(b *testing.B) {
+	input := "pascal-case"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierPascal(input)
+	}
+}
+
+func BenchmarkModifierCamel(b *testing.B) {
+	input := "camel-case"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierCamel(input)
+	}
+}
+
+func BenchmarkModifierTitle(b *testing.B) {
+	input := "ATitleTest"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierTitle(input)
+	}
+}
+
+func BenchmarkModifierPlural(b *testing.B) {
+	input := "Country"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierPlural(input)
+	}
+}
+
+func BenchmarkModifierSingular(b *testing.B) {
+	input := "Countries"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ModifierSingular(input)
+	}
+}
